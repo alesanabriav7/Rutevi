@@ -1,0 +1,30 @@
+{
+  "name": "rutevi",
+  "version": "0.7.0",
+  "private": true,
+  "type": "module",
+  "description": "Route tasks with Jev before launching Codex, OpenCode or Claude Code.",
+  "bin": {
+    "rutevi": "src/cli.js",
+    "router-jev": "src/cli.js"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "audit:models": "node src/cli.js audit",
+    "eval:live": "node test/live-eval.js",
+    "eval:opencode": "node test/live-opencode-eval.js",
+    "smoke:opencode": "node test/live-opencode-smoke.js",
+    "probe:models": "node test/probe-models.js",
+    "install:codex": "node scripts/install-integrations.mjs codex",
+    "install:opencode": "node scripts/install-integrations.mjs opencode",
+    "smoke:codex-session": "node test/live-codex-session.js",
+    "smoke:opencode-session": "node test/live-opencode-session.js"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "@typesafe-ai/sdk": "0.6.0",
+    "blessed": "0.1.81"
+  }
+}
