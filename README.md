@@ -278,7 +278,40 @@ fallo y no reejecuta la tarea automáticamente.
   distribución, latencia y uso de tokens. No afirma que confianza sea probabilidad
   de completar correctamente la tarea.
 
-## Pruebas
+## Calidad y pruebas
+
+Requiere Node.js 22.12+, 24 o 26+ y `npm ci`.
+
+```sh
+npm run quality        # Oxlint + TypeScript estricto + Vitest/fast-check + Knip 6.
+npm run quality:full   # Lo anterior y Stryker (mutaciones).
+npm run test:watch     # Vitest en modo interactivo.
+npm run test:mutation  # Solo Stryker; informes HTML/JSON en reports/mutation/.
+```
+
+`tsconfig.json` verifica todo `src/` con `strict`, `checkJs` y `noEmit`.
+Los contratos están en JSDoc y `src/types.d.ts`; el CLI continúa ejecutándose
+como JavaScript sin compilación. Los scripts de integración y los tests no
+forman parte del chequeo de tipos. Oxlint no admite warnings y Knip 6 detecta
+archivos, exports y dependencias sin uso, incluyendo las entradas externas
+de las integraciones. `opencode` es un binario externo esperado en los smokes.
+
+Vitest ejecuta únicamente `test/**/*.test.js`, sin llamar a modelos reales.
+fast-check usa 200 casos por propiedad y semilla fija `20260921` para reproducir
+fallos; el error incluye el path del contraejemplo. Stryker muta los módulos de
+`src/` salvo el punto de entrada `src/cli.js`, ejecutado por subprocesos en los
+tests. El umbral inicial de mutación es 50%; 60% marca el nivel intermedio y 80%
+es el objetivo alto. El umbral cuenta también código sin cobertura; no se
+excluyen mutadores para elevar artificialmente el resultado. El workflow
+`.github/workflows/quality.yml` ejecuta calidad y mutaciones como jobs separados
+en pushes y pull requests, y conserva el informe de mutaciones.
+
+Validación local (2026-09-21): 74 tests aprobados en Node 22 y 26;
+Stryker detectó 1.353 de 2.482 mutaciones (54,51%, incluidos 50 timeouts).
+La TUI y los lanzadores conservan huecos de cobertura visibles en el informe.
+
+TypeScript queda en la serie 6: Stryker 10 utiliza su API de compilador, que
+TypeScript 7 ya no expone de la misma forma.
 
 ```sh
 npm test           # Sin red ni modelos: política, CLI y contrato del proceso.

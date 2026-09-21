@@ -1,0 +1,21 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "entry": [
+    "integrations/**/*.js",
+    "integrations/**/*.mjs",
+    "scripts/*.mjs",
+    "test/live-*.js"
+  ],
+  "project": [
+    "src/**/*.js",
+    "test/**/*.js",
+    "scripts/**/*.mjs",
+    "integrations/**/*.js",
+    "integrations/**/*.mjs",
+    "*.config.js",
+    "src/**/*.d.ts"
+  ],
+  "ignoreBinaries": [
+    "opencode"
+  ]
+}
