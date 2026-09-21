@@ -1,0 +1,20 @@
+{
+  "name": "rutevi",
+  "interface": {
+    "displayName": "Rutevi"
+  },
+  "plugins": [
+    {
+      "name": "rutevi",
+      "source": {
+        "source": "local",
+        "path": "./plugins/rutevi"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "name": "rutevi",
+  "version": "0.12.0",
+  "description": "Jev routing for tasks and subagents in the current conversation.",
+  "author": {
+    "name": "Alejandro Sanabria"
+  },
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Rutevi",
+    "shortDescription": "Route tasks and subagents with Jev.",
+    "longDescription": "Choose callable executors with Jev, complete work in the current conversation, or explicitly open a separate Herdr session. Requires the Rutevi CLI and a TypeSafe key.",
+    "developerName": "Alejandro Sanabria",
+    "category": "Productivity",
+    "capabilities": [],
+    "defaultPrompt": "Use Jev to choose an executor for this task and verify the result."
+  }
+}

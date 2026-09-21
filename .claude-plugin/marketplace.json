@@ -1,0 +1,11 @@
+{
+  "name": "rutevi",
+  "owner": { "name": "Alejandro Sanabria" },
+  "metadata": { "description": "Rutevi plugins for Jev task and subagent routing." },
+  "plugins": [{
+    "name": "rutevi",
+    "source": "./plugins/rutevi",
+    "description": "Jev routing for tasks and subagents in the current conversation.",
+    "version": "0.12.0"
+  }]
+}

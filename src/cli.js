@@ -11,9 +11,12 @@ import { launchHarness } from './launcher.js';
 import { claudeArgs } from './claude.js';
 import { harnesses } from './harnesses.js';
 import { loadOpenCodeCatalog, loadPolicy, resolveCandidates, openCodeArgs } from './opencode.js';
+import { runDirectSession } from './direct-session.js';
+import { invoke, readRequest } from './invoke.js';
 
 const help = `rutevi [opciones] — abre la TUI
-rutevi <route|run|chat|models|audit|session> [opciones] "petición"
+rutevi <route|run|chat|direct|models|audit|session> [opciones] "petición"
+rutevi invoke          JSON por stdin: assign, route, run u open desde una skill.
 
 Sin subcomando abre la TUI. router-jev sigue disponible como alias.
 
@@ -21,7 +24,8 @@ Sin subcomando abre la TUI. router-jev sigue disponible como alias.
   --layout <modo>       session: tareas en tab (por defecto), right o down en Herdr.
   --background          session: conserva el foco en Rutevi al abrir tareas.
   --inline              session: abre aquí; en Herdr abre una pestaña por defecto.
-  --session <id>        session: la tarea continúa un hilo cerrado en otra interfaz.
+  --session <id>        session/direct: continúa un hilo existente.
+  direct [tarea]        Codex: Jev enruta cada turno antes de inferencia, sin TUI.
   route                 Consulta Jev y muestra JSON; no inicia el ejecutor.
   run                   Consulta Jev y ejecuta la tarea.
   chat                  Abre CLI interactivo (selección inicial).
@@ -35,11 +39,11 @@ Sin subcomando abre la TUI. router-jev sigue disponible como alias.
   --model <modelo>      Fuerza modelo y omite Jev.
   --effort <esfuerzo>   low, medium o high; sobrescribe la selección.
   --variant <variante>  Variante OpenCode; validada contra el modelo seleccionado.
-  --preference <modo>   OpenCode: quality (política actual), balanced o fast.
+  --preference <modo>   balanced, quality o fast; direct/Claude también economy o speed.
   --policy <ruta>       Política JSON de candidatos OpenCode.
   --agent <nombre>     Agente OpenCode, por ejemplo plan.
   --sandbox <modo>     read-only o workspace-write; si se omite, hereda Codex.
-  --json                JSON del informe (audit) o eventos del harness (run).
+  --json                JSON del informe/eventos; direct recibe NDJSON {prompt}.
   --ephemeral           No persiste la sesión de Codex (solo run).
   --help                Muestra esta ayuda.
 
@@ -77,28 +81,36 @@ try {
   });
   if (values.help) {
     console.log(help);
+  } else if (positionals[0] === 'invoke') {
+    if (process.argv.length !== 3) throw new Error('invoke acepta solo JSON por stdin, sin flags ni argumentos.');
+    const result = await invoke(await readRequest(process.stdin));
+    if (result.action === 'run') {
+      console.error(`[rutevi] ${JSON.stringify(result)}`);
+      if ('exitCode' in result) process.exitCode = result.exitCode;
+    } else console.log(JSON.stringify(result, null, 2));
   } else {
     const [command = 'session', ...words] = positionals;
     const prompt = words.join(' ').trim();
     if ((values.layout || values.background) && command !== 'session') throw new Error('--layout y --background requieren session.');
     if (values.layout && !['tab', 'right', 'down'].includes(values.layout)) throw new Error('Layout inválido: tab, right o down.');
     if ((values.layout || values.background) && process.env.HERDR_ENV !== '1') throw new Error('--layout y --background requieren Herdr.');
-    if (values.session && command !== 'session') throw new Error('--session requiere session.');
+    if (values.session && !['session','direct'].includes(command)) throw new Error('--session requiere session o direct.');
     if (values.inline && command !== 'session') throw new Error('--inline requiere session.');
     if (command === 'session' && (values.json || values.ephemeral || (!prompt && values['context-file']))) throw new Error('session no acepta --json/--ephemeral; --context-file requiere una tarea directa.');
     if (command === 'audit') values.harness = 'opencode';
     if (command !== 'audit' && (values.cached || values.output)) throw new Error('--cached y --output requieren audit.');
     if (command === 'audit' && (prompt || values.model || values.variant || values.preference || values.agent || values['context-file'] || values.ephemeral || values.sandbox || values.effort)) throw new Error('audit acepta --cwd, --policy, --output, --cached y --json.');
     if (!harnesses.includes(values.harness)) throw new Error('Harness inválido: codex, opencode o claude.');
-    if (!['route', 'run', 'chat', 'models', 'audit', 'session'].includes(command) || (!['models', 'audit', 'session'].includes(command) && !prompt)) throw new Error(help);
+    if (!['route', 'run', 'chat', 'direct', 'models', 'audit', 'session'].includes(command) || (!['models', 'audit', 'session', 'direct'].includes(command) && !prompt)) throw new Error(help);
     if (command === 'models' && values.harness !== 'opencode') throw new Error('models requiere --harness opencode.');
     if (values.harness === 'opencode' && (values.sandbox || values.ephemeral || values.effort)) throw new Error('OpenCode no acepta --sandbox, --ephemeral ni --effort. Usa sus permisos y --variant.');
     if (values.harness === 'claude' && (values.sandbox || values.ephemeral)) throw new Error('Claude no acepta --sandbox ni --ephemeral de Codex. Hereda sus permisos nativos.');
-    if (values.harness !== 'opencode' && (values.variant || values.preference || values.policy || values.agent)) throw new Error('--variant, --preference, --policy y --agent requieren OpenCode.');
-    if (values.preference && !['balanced', 'fast', 'quality'].includes(values.preference)) throw new Error('Preferencia inválida: balanced, fast o quality.');
+    if (values.harness !== 'opencode' && (values.variant || (values.preference && command !== 'direct' && values.harness !== 'claude') || values.policy || values.agent)) throw new Error('--variant, --preference, --policy y --agent requieren OpenCode.');
+    if (values.preference && !['balanced', 'fast', 'quality', ...(command === 'direct' || values.harness === 'claude' ? ['economy','speed'] : [])].includes(values.preference)) throw new Error('Preferencia inválida: balanced, fast o quality.');
     if (values.effort && !['low', 'medium', 'high'].includes(values.effort)) throw new Error('Esfuerzo inválido.');
     if (values.sandbox && !['read-only', 'workspace-write'].includes(values.sandbox)) throw new Error('Sandbox inválido.');
-    if (!['run', 'audit'].includes(command) && (values.json || values.ephemeral)) throw new Error('--json y --ephemeral requieren run.');
+    if (!['run', 'audit', 'direct'].includes(command) && (values.json || values.ephemeral)) throw new Error('--json y --ephemeral requieren run.');
+    if (command === 'direct' && (values.harness !== 'codex' || values.model || values.effort || values.ephemeral || values['context-file'])) throw new Error('direct usa Codex y su catálogo; no acepta model/effort/ephemeral/context-file. --json acepta líneas {prompt}.');
     const opensTab = command === 'session' && process.env.HERDR_ENV === '1' && !values.inline;
     if (['chat', 'session'].includes(command) && !opensTab && (!process.stdin.isTTY || !process.stdout.isTTY)) throw new Error('chat/session requiere una terminal interactiva. Usa run para automatización.');
     const cwd = resolve(values.cwd);
@@ -107,7 +119,9 @@ try {
     if (values['context-file']) context = await readFile(resolve(values['context-file']), 'utf8');
     if (Buffer.byteLength(prompt + context) > 64000) throw new Error('Petición y contexto exceden 64 KB; proporciona un resumen.');
     const options = { ...values, command, prompt, context, cwd };
-    if (command === 'session') {
+    if (command === 'direct') {
+      await runDirectSession(options);
+    } else if (command === 'session') {
       if (prompt) {
         const route = await selectTask(options);
         console.error(`[router-jev] ${JSON.stringify(route)}`);

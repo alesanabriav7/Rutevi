@@ -1,9 +1,9 @@
 {
   "name": "rutevi",
-  "version": "0.7.0",
+  "version": "0.12.0",
   "private": true,
   "type": "module",
-  "description": "Route tasks with Jev before launching Codex, OpenCode or Claude Code.",
+  "description": "Route tasks and subagents with Jev inside coding sessions or a terminal launcher.",
   "bin": {
     "rutevi": "src/cli.js",
     "router-jev": "src/cli.js"
@@ -11,6 +11,11 @@
   "scripts": {
     "test": "vitest run",
     "audit:models": "node src/cli.js audit",
+    "smoke:assign": "node test/live-assign-smoke.js",
+    "eval:task-fit": "node test/live-task-fit-eval.js",
+    "eval:effort": "node test/live-effort-eval.js",
+    "smoke:effort": "node test/live-effort-smoke.js",
+    "eval:assign": "node test/live-assign-eval.js",
     "eval:live": "node test/live-eval.js",
     "eval:opencode": "node test/live-opencode-eval.js",
     "smoke:opencode": "node test/live-opencode-smoke.js",
@@ -25,7 +30,9 @@
     "knip": "knip",
     "test:mutation": "stryker run",
     "quality": "npm run lint && npm run typecheck && npm test && npm run knip",
-    "quality:full": "npm run quality && npm run test:mutation"
+    "quality:full": "npm run quality && npm run test:mutation",
+    "install:claude": "node scripts/install-integrations.mjs claude",
+    "bench:value": "node scripts/benchmark-value.mjs"
   },
   "engines": {
     "node": "^22.12.0 || ^24.0.0 || >=26.0.0"

@@ -1,0 +1,23 @@
+{
+  "description": "Task-fit regression expectations, not ground-truth model superiority. Frozen before live evaluation. No task asks to select its expected model. Three trials reorder candidates. Priority and constraints are part of the task contract.",
+  "codex": [
+    {"id":"instant-label","priority":"speed","prompt":"Return only BUG or FEATURE for this title: add CSV export. This is interactive autocomplete; minimal response latency matters.","expected":["gpt-5.6-luna"]},
+    {"id":"quick-command","priority":"speed","prompt":"Run the known command npm test -- --runInBand and summarize its exit code. The command is already approved; no design work is needed.","expected":["gpt-5.6-luna"]},
+    {"id":"rescheduling","priority":"balanced","prompt":"Implement appointment rescheduling across the existing API handler, database transaction and UI form. Preserve permissions and validation, add integration coverage, and keep changes compatible with the established architecture. This is a defined feature, not a new architecture.","expected":["gpt-5.6-terra"]},
+    {"id":"plugin-contract","priority":"balanced","prompt":"Extend an existing plugin system to validate configuration in the CLI, propagate typed errors through two modules, and preserve compatibility for current plugins. Implement and verify the coordinated changes; the public behavior is specified.","expected":["gpt-5.6-terra"]},
+    {"id":"distributed-design","priority":"quality","prompt":"Choose a consistency strategy for a payments migration across independently failing regions. Analyze irreversible side effects, idempotency, reconciliation and recovery when acknowledgments are lost. No agreed architecture exists; correctness dominates latency.","expected":["gpt-6-astra"]},
+    {"id":"failed-diagnosis","priority":"quality","prompt":"Two implemented fixes still allow duplicate settlements under interleaved retries across three services. Establish the root cause and invariants from conflicting traces before proposing another patch. The cause remains unknown.","expected":["gpt-6-astra"]},
+    {"id":"urgent-hard","priority":"speed","prompt":"Urgent: diagnose a three-service consistency failure after two incorrect fixes. Speed matters, but do not trade away the reasoning needed to establish the cross-system invariant and prevent another incorrect patch.","expected":["gpt-6-astra"]},
+    {"id":"missing-goal","priority":"balanced","prompt":"Do it.","expected":[null]}
+  ],
+  "claude": [
+    {"id":"instant-extract","priority":"speed","prompt":"Extract the order ID from this sentence and return only it: order ORD-318 arrived. This runs in a live UI; latency is the main concern.","expected":["haiku"]},
+    {"id":"responsive-feature","priority":"speed","prompt":"Implement pagination in the existing React component using the current endpoint and add boundary tests. I need a responsive coding agent, but it must inspect and modify the repository correctly.","expected":["sonnet"]},
+    {"id":"enterprise-feature","priority":"balanced","prompt":"Implement a specified enterprise role-management workflow across API authorization, database persistence and three UI screens, with backward-compatible migrations and integration tests. Requirements are settled; carry the implementation through reliably.","expected":["opus"]},
+    {"id":"complex-refactor","priority":"balanced","prompt":"Refactor a mature plugin engine across seven modules without changing public behavior. Preserve lifecycle ordering, typing and extension compatibility, and verify the cross-module regression tests. The desired design is already agreed.","expected":["opus"]},
+    {"id":"long-horizon","priority":"quality","prompt":"Develop and validate a new architecture for a multi-region workflow engine over a long autonomous task. Resolve conflicting guarantees, failure recovery and novel cross-system invariants. Prioritize deepest reasoning and final correctness over latency and cost.","expected":["fable"]},
+    {"id":"reasoning-escalation","priority":"quality","prompt":"The previous high-effort Opus implementation failed adversarial concurrency tests twice. Reconsider the causal model and derive a correct invariant before changing the distributed workflow again.","expected":["fable"]},
+    {"id":"urgent-hard","priority":"speed","prompt":"Urgent recovery diagnosis: the previous high-effort Opus fixes failed twice and the distributed invariant remains unresolved. Need the fastest response that still supplies the missing deeper reasoning; another shallow patch is unacceptable.","expected":["fable"]},
+    {"id":"missing-goal","priority":"balanced","prompt":"Do it.","expected":[null]}
+  ]
+}

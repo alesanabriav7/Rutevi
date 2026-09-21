@@ -8,31 +8,25 @@ import { routeClaude, claudeArgs } from '../src/claude.js';
 import { taskArguments } from '../src/session/dispatch.js';
 import { configEnvironment } from '../src/session/task-process.js';
 
-const client = (choice, confidence = 1) => ({ systemOne: async () => ({ model: 'test-jev', answers: { route: { choice, confidence } } }) });
+const client = selected => ({ systemOne: async request => ({ model:'test-jev',answers:Object.fromEntries(Object.keys(request.questions).map(key=>{
+  const options=Object.keys(request.questions[key].criteria);
+  const choice=key==='task_0'?selected:'suitable';
+  return [key,{type:'choice',choice,confidence:1,probabilities:Object.fromEntries(options.map(k=>[k,k===choice?1:0]))}];
+})) }) });
 
-test('Claude routing applies native models and efforts to every Jev category', async () => {
-  for (const [category, model, effort] of [['simple', 'sonnet', 'low'], ['standard', 'sonnet', 'medium'], ['complex', 'fable', 'high'], ['unclear', 'fable', 'high']]) {
-    const route = await routeClaude({ prompt: 'test' }, client(category));
-    assert.equal(route.model, model);
-    assert.equal(route.effort, effort);
-    assert.equal(route.source, 'jev');
-    assert.equal(route.harness, 'claude');
-  }
+test('Claude task-fit routing can select every family, including speed and complex coding', async () => {
+ for(const [index,model,effort] of [[0,'haiku',undefined],[1,'sonnet','medium'],[2,'opus','high'],[3,'fable','high']]){
+  const route=await routeClaude({prompt:'task'},client(`candidate_${index}`));
+  assert.equal(route.model,model);assert.equal(route.effort,effort);assert.equal(route.source,'jev');
+ }
 });
-
-test('Claude uncertainty and service fallback stay on Claude; explicit choice bypasses Jev', async () => {
-  const uncertain = await routeClaude({ prompt: 'test' }, client('simple', 0.2));
-  assert.equal(uncertain.model, 'fable');
-  assert.equal(uncertain.effort, 'high');
-  assert.equal(uncertain.source, 'low-confidence-fallback');
-  const failed = await routeClaude({ prompt: 'test', effort: 'medium' }, { systemOne() { throw new Error('PRIVATE_CONTEXT'); } });
-  assert.equal(failed.model, 'fable');
-  assert.equal(failed.effort, 'medium');
-  assert.equal(failed.source, 'service-error-fallback');
-  assert.ok(!JSON.stringify(failed).includes('PRIVATE_CONTEXT'));
-  const explicit = await routeClaude({ model: 'opus', effort: 'high' }, { systemOne() { assert.fail('must not call Jev'); } });
-  assert.equal(explicit.model, 'opus');
-  assert.equal(explicit.source, 'explicit');
+test('Claude no-fit and service errors never silently execute frontier; explicit override bypasses Jev',async()=>{
+ await assert.rejects(routeClaude({prompt:'task'},client('none')),/no seleccionó/);
+ await assert.rejects(routeClaude({prompt:'task'},{systemOne(){throw new Error('SECRET');}}),/no seleccionó/);
+ const route=await routeClaude({model:'opus',effort:'high'},{systemOne(){assert.fail('unexpected Jev');}});
+ assert.equal(route.model,'opus');assert.equal(route.source,'explicit');
+ await assert.rejects(routeClaude({model:'haiku',effort:'high'}),/no admite/);
+ assert.deepEqual(claudeArgs({command:'run',prompt:'task'},{model:'haiku'}),['--model','haiku','--print','--','task']);
 });
 
 test('Claude native session receives literal task, context, model, effort and resume without bypass flags', () => {

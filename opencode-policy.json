@@ -1,5 +1,5 @@
 {
-  "description": "Current-generation routing reviewed against official model announcements and local access probes. Default prioritizes quality and task fit, not lowest token price. Role assignments are not comparative benchmark rankings. No automatic switch to contributor/training variants or region opt-ins.",
+  "description": "Current-generation routing reviewed against official model announcements and local access probes. Default balances sufficient quality with completion cost; explicit quality mode prioritizes strongest fit. Role assignments are not comparative benchmark rankings. No automatic switch to contributor/training variants or region opt-ins.",
   "fallback": "gpt_reasoning",
   "candidates": [
     {
@@ -139,5 +139,5 @@
     }
   ],
   "reviewedAt": "2026-09-20",
-  "defaultPreference": "quality"
+  "defaultPreference": "balanced"
 }

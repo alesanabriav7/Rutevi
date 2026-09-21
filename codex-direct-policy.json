@@ -1,0 +1,53 @@
+{
+  "description": "Task-fit policy with relative cost and latency estimates, not a capability benchmark or measured prices. Filtered against native model/list. Default priority balanced; economy/speed/quality are explicit alternatives.",
+  "candidates": [
+    {
+      "id": "luna-low",
+      "model": "gpt-5.6-luna",
+      "effort": "low",
+      "costRank": 1,
+      "description": "Modest agentic coding model at low effort: literal edits, command execution, recall and factual reporting. Prefer a higher effort for implementation requiring investigation.",
+      "latencyRank": 1
+    },
+    {
+      "id": "luna-medium",
+      "model": "gpt-5.6-luna",
+      "effort": "medium",
+      "costRank": 2,
+      "description": "Modest agentic coding model at medium effort: bounded repository implementation, ordinary debugging, tests and refactoring with tool use and verification.",
+      "latencyRank": 2
+    },
+    {
+      "id": "luna-high",
+      "model": "gpt-5.6-luna",
+      "effort": "high",
+      "costRank": 3,
+      "description": "Modest agentic coding model at high effort: harder bounded investigation and reasoning. Not the preferred capability for novel distributed-system architecture or repeated failed attempts.",
+      "latencyRank": 3
+    },
+    {
+      "id": "terra-medium",
+      "model": "gpt-5.6-terra",
+      "effort": "medium",
+      "costRank": 3,
+      "latencyRank": 3,
+      "description": "Balanced agentic coding specialist for implementation across related modules, API contracts, integration tests and refactoring with several interacting requirements. Prefer this intermediate coding profile for substantial but well-scoped engineering, rather than treating all work as either a tiny fix or frontier research."
+    },
+    {
+      "id": "terra-high",
+      "model": "gpt-5.6-terra",
+      "effort": "high",
+      "costRank": 4,
+      "latencyRank": 4,
+      "description": "Balanced agentic coding specialist with deeper reasoning for difficult but bounded multi-module implementation and regression diagnosis. Frontier is reserved for unresolved cross-system architecture, novel reasoning or repeated unsuccessful approaches."
+    },
+    {
+      "id": "astra-high",
+      "model": "gpt-6-astra",
+      "effort": "high",
+      "costRank": 5,
+      "description": "Frontier reasoning for difficult architecture, interacting concurrency invariants, cross-system failures after repeated attempts, and complex migration tradeoffs. Avoid paying this cost for ordinary work.",
+      "latencyRank": 5
+    }
+  ]
+}

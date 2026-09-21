@@ -16,6 +16,7 @@
     "src/**/*.d.ts"
   ],
   "ignoreBinaries": [
-    "opencode"
+    "opencode",
+    "codex"
   ]
 }

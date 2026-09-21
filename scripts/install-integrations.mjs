@@ -7,17 +7,20 @@ import { parseArgs } from 'node:util';
 const root = fileURLToPath(new URL('../', import.meta.url));
 const { values, positionals } = parseArgs({ allowPositionals: true, options: {
   'codex-home': { type: 'string' }, 'skills-dir': { type: 'string' },
-  'opencode-home': { type: 'string' }, uninstall: { type: 'boolean', default: false },
+  'opencode-home': { type: 'string' }, 'claude-home': { type: 'string' }, uninstall: { type: 'boolean', default: false },
 } });
 try {
   const harness = positionals[0];
-  if (!['codex', 'opencode'].includes(harness) || positionals.length !== 1) throw new Error('Uso: node scripts/install-integrations.mjs codex|opencode [--uninstall]');
+  if (!['codex', 'opencode', 'claude'].includes(harness) || positionals.length !== 1) throw new Error('Uso: node scripts/install-integrations.mjs codex|opencode|claude [--uninstall]');
   const codexHome = resolve(values['codex-home'] ?? process.env.CODEX_HOME ?? resolve(homedir(), '.codex'));
   const skills = resolve(values['skills-dir'] ?? resolve(homedir(), '.agents/skills'));
   const openCodeHome = resolve(values['opencode-home'] ?? resolve(process.env.XDG_CONFIG_HOME ?? resolve(homedir(), '.config'), 'opencode'));
+  const claudeHome = resolve(values['claude-home'] ?? process.env.CLAUDE_CONFIG_DIR ?? resolve(homedir(), '.claude'));
   const entries = harness === 'codex' ? [
     ['integrations/codex/jev', resolve(skills, 'jev')],
     ['integrations/codex/prompts/jev.md', resolve(codexHome, 'prompts/jev.md')],
+  ] : harness === 'claude' ? [
+    ['plugins/rutevi/skills/jev', resolve(claudeHome, 'skills/jev')],
   ] : [['integrations/opencode/jev.js', resolve(openCodeHome, 'plugins/router-jev.js')]];
   // Preflight every destination before making any changes. Never overwrite a user's file.
   const links = [];
@@ -26,7 +29,13 @@ try {
     let exists = false;
     try {
       const info = await lstat(target);
-      if (!info.isSymbolicLink() || await realpath(target) !== source) throw new Error(`Destino ocupado: ${target}. No se modificó.`);
+      // A dangling symlink is still a collision, not an available destination.
+      let same = false;
+      if (info.isSymbolicLink()) {
+        try { same = await realpath(target) === source; }
+        catch (error) { if (error.code !== 'ENOENT') throw error; }
+      }
+      if (!same) throw new Error(`Destino ocupado: ${target}. No se modificó.`);
       exists = true;
     } catch (error) { if (error.code !== 'ENOENT') throw error; }
     links.push({ source, target, exists });
@@ -37,4 +46,5 @@ try {
     console.log(`${values.uninstall ? 'Retirado' : 'Enlazado'}: ${target}`);
   }
   console.log('Los archivos fuente permanecen en ' + root);
+  if (!values.uninstall) console.log('Reinicia el harness para cargar la integración. Requiere rutevi en PATH y TYPESAFE_API_KEY en su entorno.');
 } catch (error) { console.error(error.message); process.exitCode = 1; }

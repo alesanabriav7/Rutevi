@@ -32,6 +32,8 @@ test('OpenCode routes literal command arguments in the same message and preserve
  assert.deepEqual(out.message.model,{providerID:'p',modelID:'one',variant:'high'});
  assert.equal(out.message.agent,'plan');
  assert.equal(out.parts[0].text,env.calls[0].prompt);
+ assert.equal(out.parts.length,1); // No model-led routing workflow injected.
+
 });
 
 test('OpenCode auto is opt-in per session, off restores manual selection',async()=>{
@@ -39,7 +41,8 @@ test('OpenCode auto is opt-in per session, off restores manual selection',async(
  await hooks['chat.message']({sessionID:'s'},output('ordinary'));assert.equal(env.calls.length,0);
  await command(hooks,'s','auto');assert.equal(env.calls.length,0);
  await hooks['chat.message']({sessionID:'other'},output('ordinary'));assert.equal(env.calls.length,0);
- await hooks['chat.message']({sessionID:'s'},output('ordinary'));assert.equal(env.calls.length,1);
+ const autoOutput=output('ordinary');await hooks['chat.message']({sessionID:'s'},autoOutput);assert.equal(env.calls.length,1);
+ assert.equal(autoOutput.parts.length,1);
  await command(hooks,'s','off');
  const out=output('manual');await hooks['chat.message']({sessionID:'s'},out);
  assert.equal(env.calls.length,1);assert.equal(out.message.model.modelID,'manual');
@@ -61,4 +64,12 @@ test('plugin refuses command collision and auto-routing attachments with text-on
  const out=output('see attachment');out.parts.push({type:'file',mime:'image/png'});
  await assert.rejects(hooks['chat.message']({sessionID:'s'},out),/adjuntos/);
  assert.equal(env.calls.length,0);
+});
+
+test.each(['no-fit-fallback','service-error-fallback'])('router %s never invokes an expensive implicit fallback',async source=>{
+ const env=harness();env.select=async()=>({model:'p/one',variant:'high',source});
+ const hooks=await createJevPlugin(env,env),out=output('request');
+ await hooks['command.execute.before']({command:'jev',arguments:'request'},out);
+ await assert.rejects(hooks['chat.message']({sessionID:'s'},out),/no se inició/);
+ assert.equal(out.message.model.modelID,'manual');
 });

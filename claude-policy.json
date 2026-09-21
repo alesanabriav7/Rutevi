@@ -1,0 +1,10 @@
+{
+  "description": "Provisional task-fit profiles based on official Claude model documentation, reviewed 2026-09-21. Native aliases follow account/provider configuration; documented existence is not proof of account access. Cost and latency ranks are relative, not prices or benchmarks.",
+  "sources": ["https://platform.claude.com/docs/en/models/overview", "https://code.claude.com/docs/en/model-config"],
+  "candidates": [
+    {"id":"haiku","model":"haiku","costRank":1,"latencyRank":1,"description":"Fastest Claude family for quick classification, extraction, literal edits and brief responses when latency is critical. Supports tools, but not configurable reasoning effort. Not the default for complex multi-module coding or deep reasoning."},
+    {"id":"sonnet","model":"sonnet","effort":"medium","costRank":2,"latencyRank":2,"description":"Fast balanced intelligence for everyday agentic implementation, ordinary bugs, tests and bounded research. Good when responsiveness matters but the work exceeds literal extraction."},
+    {"id":"opus","model":"opus","effort":"high","costRank":3,"latencyRank":3,"description":"Complex agentic coding and enterprise work: coordinated changes across modules, integration constraints, substantial implementation and regression analysis. Prefer for demanding engineering without a demonstrated need for the most expensive frontier reasoning."},
+    {"id":"fable","model":"fable","effort":"high","costRank":5,"latencyRank":5,"description":"Demanding reasoning and long-horizon agentic work, difficult novel architecture and deep cross-system diagnosis. Prefer when high-effort Opus attempts or evaluations have fallen short, or the task explicitly prioritizes maximum reasoning quality over speed and cost."}
+  ]
+}

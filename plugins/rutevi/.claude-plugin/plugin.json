@@ -1,0 +1,7 @@
+{
+  "name": "rutevi",
+  "version": "0.12.0",
+  "description": "Jev routing for tasks and subagents in the current conversation.",
+  "author": { "name": "Alejandro Sanabria" },
+  "repository": "https://github.com/alesanabriav7/Rutevi"
+}

@@ -72,11 +72,15 @@ export async function createJevPlugin({ client }, { select = routeOpenCode, poli
         .filter(item => item.info.role === 'user' || item.info.role === 'assistant')
         .map(item => ({ role: item.info.role, text: item.parts.filter(part => part.type === 'text' && !part.synthetic && !part.ignored).map(part => part.text).join('\n') }));
       const decision = await select({ prompt, context: routingContext(history) }, providerCatalog(providers.data.providers), policy);
+      // A failed router must not silently start the expensive default model.
+      if (decision.source !== 'jev') throw new Error(`Jev no seleccionó un ejecutor (${decision.source}); no se inició inferencia.`);
       const separator = decision.model.indexOf('/');
       if (separator < 1) throw new Error('Jev devolvió un modelo inválido.');
       // 1.18.31 persists variant inside User.model, despite older SDK v1 types.
       output.message.model = { providerID: decision.model.slice(0, separator), modelID: decision.model.slice(separator + 1), variant: decision.variant };
       if (commandPart) commandPart.text = prompt;
+      // The executor receives the original task only: routing is already finished.
+      // No injected skill, candidate construction or second model-led routing pass.
       state.last = { model: decision.model, variant: decision.variant, source: decision.source };
       try { await client.app.log({ body: { service: 'router-jev', level: 'info', message: 'routing', extra: { ...state.last, errorType: decision.errorType, candidateCount: decision.candidateCount } } }); } catch {}
       await notice(`${decision.model} / ${decision.variant ?? 'default'} (${decision.source})`);

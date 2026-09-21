@@ -20,7 +20,8 @@ const cases = [
 ];
 let failures = 0;
 for (const { name, expected, ...input } of cases) {
-  const result = await routeOpenCode(input, catalog, policy);
+  // Preserve this specialist-quality suite; cost-aware assignments have eval:assign.
+  const result = await routeOpenCode({ preference: 'quality', ...input }, catalog, policy);
   const passed = ['jev', 'no-fit-fallback'].includes(result.source) && expected.includes(result.policyRole);
   if (!passed) failures++;
   console.log(JSON.stringify({ name, expected, passed, ...result }));

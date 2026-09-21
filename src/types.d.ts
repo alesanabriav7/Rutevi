@@ -65,7 +65,7 @@ export interface ProviderModel {
   cost?: { input?: number; output?: number };
   variants?: Record<string, { disabled?: boolean }>;
 }
-interface Part { type: string; text: string; synthetic?: boolean; ignored?: boolean }
+interface Part { type: string; text: string; synthetic?: boolean; ignored?: boolean; id?: string; sessionID?: string; messageID?: string }
 export interface ChatOutput {
   parts: Part[];
   message: { id: string; model?: { providerID: string; modelID: string; variant?: string } };
